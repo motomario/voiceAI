@@ -1,0 +1,76 @@
+<!-- Add your CSS files here -->
+<!-- Include jQuery if using for AJAX -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+    // This script tag is for the CSRF token setup for AJAX requests
+    // Add this before your main script block
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+</script>
+</head>
+<body>
+<h1>Voice Assistant Interface</h1>
+<button id="start-listening">Start Listening</button>
+<button id="stop-listening">Stop Listening</button>
+<div id="transcription"></div>
+
+<script>
+    // Check if the browser supports the Web Speech API
+if ('webkitSpeechRecognition' in window) {
+    var recognition = new webkitSpeechRecognition();
+
+    // Set properties
+    recognition.continuous = true;  // Keep listening even after voice input is captured
+    recognition.interimResults = true; // Show interim results (optional)
+
+    // Define what happens when the speech recognition service starts
+    recognition.onstart = function() {
+        console.log('Voice recognition started. Speak into the microphone.');
+    };
+
+    // Add event listeners for the buttons
+    document.getElementById('start-listening').addEventListener('click', function() {
+        recognition.start();
+    });
+
+    document.getElementById('stop-listening').addEventListener('click', function() {
+        recognition.stop();
+    });
+
+    // Handle the result event
+    recognition.onresult = function(event) {
+        var transcript = '';
+        for (var i = event.resultIndex; i < event.results.length; ++i) {
+            transcript += event.results[i][0].transcript;
+        }
+        // Process the transcript, e.g., by sending it to the Django backend
+        console.log('Transcript: ', transcript);
+
+        // Here you can add conditions to check for your specific voice commands
+        if (transcript.trim().toLowerCase() === 'clear chat') {
+            // Function to clear chat
+        }
+        // Add other conditions for different voice commands
+    };
+
+    // Start the voice recognition
+    recognition.start();
+} else {
+    console.log('Your browser does not support the Web Speech API');
+}
+</script>
+</body>
+</html>
