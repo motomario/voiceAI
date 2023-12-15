@@ -4,90 +4,215 @@
     <meta charset="UTF-8">
     <title>Voice Assistant</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        body {
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            height: 100vh;
+            align-items: center;
+        }
+        #transcription-container {
+            width: 60%;
+            margin: 20px auto;
+        }
+        #chat-box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 400px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+        .message {
+            padding: 5px 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            width: fit-content;
+            word-wrap: break-word;
+            border: 1px solid #ccc;
+        }
+        .user-message {
+            margin-left: auto;
+            margin-right: 0;
+            background-color: transparent;
+        }
+        .chatgpt-message {
+            margin-right: auto;
+            margin-left: 0;
+            background-color: transparent;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        #clear-chat {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+        }
+    </style>
 </head>
 <body>
-<h1>Voice Assistant Interface</h1>
-<button id="start-listening">Start Listening</button>
-<button id="stop-listening" style="display:none;">Stop Listening</button>
-<div id="transcription"></div>
+    <div id="transcription-container">
+        <h1>Voice Assistant Interface</h1>
+        <button id="start-listening">Start Listening</button>
+        <button id="stop-listening" style="display:none;">Stop Listening</button>
+        <button id="clear-chat">Clear Chat</button>
+        <div id="chat-box"></div>
+    </div>
 
 <script>
-    // CSRF Token setup for AJAX requests
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
+    document.addEventListener('DOMContentLoaded', function() {
+        var chatBox = document.getElementById('chat-box');
+        var clearChat = document.getElementById('clear-chat');
+        var startListeningBtn = document.getElementById('start-listening');
+        var stopListeningBtn = document.getElementById('stop-listening');
+        var csrftoken = getCookie('csrftoken');
+        var isProcessingCommand = false;
+        var recognition;
+
+        // Set up logging
+        function log(message) {
+            console.log(message);
+        }
+
+        // Initialize speech recognition if available
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            recognition.onstart = function() {
+                log('Voice recognition started. Speak into the microphone.');
+                startListeningBtn.style.display = 'none';
+                stopListeningBtn.style.display = 'inline';
+            };
+
+            recognition.onerror = function(event) {
+                log('Voice recognition error occurred: ' + event.error);
+            };
+
+            recognition.onend = function() {
+                log('Voice recognition ended.');
+                startListeningBtn.style.display = 'inline';
+                stopListeningBtn.style.display = 'none';
+            };
+
+            recognition.onresult = function(event) {
+                var interim_transcript = '';
+                var final_transcript = ''; // Initialize the final transcript variable outside the loop
+
+                for (var i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        final_transcript += event.results[i][0].transcript;
+                    } else {
+                        interim_transcript += event.results[i][0].transcript;
+                    }
                 }
+                log('Interim Transcript: ' + interim_transcript);
+                log('Final Transcript: ' + final_transcript);
+
+                if (final_transcript.trim() !== '') {
+                    processTranscript(final_transcript);
+                    final_transcript = ''; // Reset final_transcript after processing
+                }
+
+                // Display interim results
+                if (interim_transcript !== '') {
+                    appendMessage(interim_transcript, 'user-message interim', true);
+                }
+            };
+        } else {
+            log('Your browser does not support the Web Speech API');
+        }
+
+        clearChat.addEventListener('click', function() {
+            chatBox.innerHTML = '';
+            sessionStorage.clear();
+            log('Chat was cleared.');
+        });
+
+        function processTranscript(transcript) {
+            appendMessage(transcript, 'user-message');
+            if (!isProcessingCommand) {
+                isProcessingCommand = true;
+                $.ajax({
+                    url: '/voiceAI/process_command/',
+                    type: 'POST',
+                    data: {
+                        'transcript': transcript,
+                        'csrfmiddlewaretoken': csrftoken
+                    },
+                    success: function(response) {
+                        log('Server response:', response);
+                        appendMessage(response.message, 'chatgpt-message');
+                    },
+                    error: function(xhr, status, error) {
+                        log('AJAX error:', status, error);
+                    },
+                    complete: function() {
+                        isProcessingCommand = false;
+                    }
+                });
             }
         }
-        return cookieValue;
-    }
-    const csrftoken = getCookie('csrftoken');
 
-    // Web Speech API setup
-    if ('webkitSpeechRecognition' in window) {
-        var recognition = new webkitSpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-
-        recognition.onstart = function() {
-            document.getElementById('start-listening').style.display = 'none';
-            document.getElementById('stop-listening').style.display = 'inline';
-            console.log('Voice recognition started. Speak into the microphone.');
-        };
-
-        recognition.onerror = function(event) {
-            console.log('Voice recognition error occurred:', event.error);
-        };
-
-        recognition.onend = function() {
-            document.getElementById('start-listening').style.display = 'inline';
-            document.getElementById('stop-listening').style.display = 'none';
-            console.log('Voice recognition ended.');
-        };
-
-        recognition.onresult = function(event) {
-            var transcript = '';
-            for (var i = event.resultIndex; i < event.results.length; ++i) {
-                transcript += event.results[i][0].transcript;
-            }
-            $('#transcription').text(transcript); // Display the transcript on the page
-            // Process the transcript by sending it to the Django backend
-            $.ajax({
-                url: '/voiceAI/process_command/', // URL to your Django view
-                type: 'POST',
-                data: {
-                    'transcript': transcript,
-                    'csrfmiddlewaretoken': csrftoken // Include the CSRF token
-                },
-                success: function(response) {
-                    // Log the response to the console
-                    console.log('Server response:', response);
-                    // Update the transcription div with the AI response
-                    $('#transcription').text(response.message);
-                },
-                error: function(xhr, status, error) {
-                    console.error('AJAX error:', status, error);
+        function appendMessage(text, className, isInterim) {
+            var existingInterim = chatBox.querySelector('.interim');
+            if (isInterim && existingInterim) {
+                existingInterim.textContent = text;
+            } else {
+                if (existingInterim) {
+                    existingInterim.remove(); // Remove interim result
                 }
-            });
+                var messageDiv = document.createElement('div');
+                messageDiv.classList.add('message', className);
+                if (isInterim) {
+                    messageDiv.classList.add('interim'); // Mark as interim result
+                }
+                messageDiv.textContent = text;
+                chatBox.appendChild(messageDiv);
+            }
+            if (!isInterim) {
+                sessionStorage.setItem('chatHistory', chatBox.innerHTML);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+
+        window.onload = function() {
+            var savedHistory = sessionStorage.getItem('chatHistory');
+            if (savedHistory) {
+                chatBox.innerHTML = savedHistory;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
         };
 
-        document.getElementById('start-listening').addEventListener('click', function() {
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = jQuery.trim(cookies[i]);
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        startListeningBtn.addEventListener('click', function() {
             recognition.start();
         });
 
-        document.getElementById('stop-listening').addEventListener('click', function() {
+        stopListeningBtn.addEventListener('click', function() {
             recognition.stop();
         });
-
-    } else {
-        console.log('Your browser does not support the Web Speech API');
-    }
+    });
 </script>
 </body>
 </html>
