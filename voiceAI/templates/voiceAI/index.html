@@ -56,13 +56,13 @@
     </style>
 </head>
 <body>
-    <div id="transcription-container">
-        <h1>Voice Assistant Interface</h1>
-        <button id="start-listening">Start Listening</button>
-        <button id="stop-listening" style="display:none;">Stop Listening</button>
-        <button id="clear-chat">Clear Chat</button>
-        <div id="chat-box"></div>
-    </div>
+<div id="transcription-container">
+    <h1>Voice Assistant Interface</h1>
+    <button id="start-listening">Start Listening</button>
+    <button id="stop-listening" style="display:none;">Stop Listening</button>
+    <button id="clear-chat">Clear Chat</button>
+    <div id="chat-box"></div>
+</div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -72,6 +72,7 @@
         var stopListeningBtn = document.getElementById('stop-listening');
         var csrftoken = getCookie('csrftoken');
         var isProcessingCommand = false;
+        var final_transcript = ''; // Global variable to store the final transcript
         var recognition;
 
         // Set up logging
@@ -103,8 +104,6 @@
 
             recognition.onresult = function(event) {
                 var interim_transcript = '';
-                var final_transcript = ''; // Initialize the final transcript variable outside the loop
-
                 for (var i = event.resultIndex; i < event.results.length; ++i) {
                     if (event.results[i].isFinal) {
                         final_transcript += event.results[i][0].transcript;
@@ -115,16 +114,28 @@
                 log('Interim Transcript: ' + interim_transcript);
                 log('Final Transcript: ' + final_transcript);
 
+                // Display the interim transcript in the chat box
+                var interimDiv = document.getElementById('interim-result');
+                if (!interimDiv && interim_transcript !== '') {
+                    interimDiv = document.createElement('div');
+                    interimDiv.id = 'interim-result';
+                    interimDiv.classList.add('message', 'user-message', 'interim');
+                    chatBox.appendChild(interimDiv);
+                }
+                if (interimDiv) {
+                    interimDiv.textContent = interim_transcript;
+                }
+
+                // Once the result is final, process it
                 if (final_transcript.trim() !== '') {
+                    if (interimDiv) {
+                        interimDiv.remove(); // Remove the interim result
+                    }
                     processTranscript(final_transcript);
                     final_transcript = ''; // Reset final_transcript after processing
                 }
-
-                // Display interim results
-                if (interim_transcript !== '') {
-                    appendMessage(interim_transcript, 'user-message interim', true);
-                }
             };
+
         } else {
             log('Your browser does not support the Web Speech API');
         }
@@ -160,26 +171,13 @@
             }
         }
 
-        function appendMessage(text, className, isInterim) {
-            var existingInterim = chatBox.querySelector('.interim');
-            if (isInterim && existingInterim) {
-                existingInterim.textContent = text;
-            } else {
-                if (existingInterim) {
-                    existingInterim.remove(); // Remove interim result
-                }
-                var messageDiv = document.createElement('div');
-                messageDiv.classList.add('message', className);
-                if (isInterim) {
-                    messageDiv.classList.add('interim'); // Mark as interim result
-                }
-                messageDiv.textContent = text;
-                chatBox.appendChild(messageDiv);
-            }
-            if (!isInterim) {
-                sessionStorage.setItem('chatHistory', chatBox.innerHTML);
-                chatBox.scrollTop = chatBox.scrollHeight;
-            }
+        function appendMessage(text, className) {
+            var messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', className);
+            messageDiv.textContent = text;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            sessionStorage.setItem('chatHistory', chatBox.innerHTML);
         }
 
         window.onload = function() {
