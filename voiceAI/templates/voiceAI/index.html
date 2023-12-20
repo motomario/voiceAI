@@ -53,6 +53,11 @@
             color: white;
             border: none;
         }
+        .thinking-message {
+            /* Styling for the thinking message */
+            opacity: 0.8;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -65,6 +70,9 @@
 </div>
 
 <script>
+
+
+
     document.addEventListener('DOMContentLoaded', function() {
         var chatBox = document.getElementById('chat-box');
         var clearChat = document.getElementById('clear-chat');
@@ -78,6 +86,26 @@
         // Set up logging
         function log(message) {
             console.log(message);
+        }
+
+        function showThinkingAnimation() {
+            var thinkingDiv = document.createElement('div');
+            thinkingDiv.id = 'thinking';
+            thinkingDiv.classList.add('message', 'chatgpt-message', 'thinking-message');
+            thinkingDiv.textContent = 'thinking';
+            chatBox.appendChild(thinkingDiv);
+
+            var ellipsis = '';
+            var interval = setInterval(function() {
+                if (ellipsis.length < 3) {
+                    ellipsis += '.';
+                } else {
+                    ellipsis = '';
+                }
+                thinkingDiv.textContent = 'thinking' + ellipsis;
+            }, 500);
+
+            return interval; // Return the interval ID
         }
 
         // Initialize speech recognition if available
@@ -150,6 +178,8 @@
             appendMessage(transcript, 'user-message');
             if (!isProcessingCommand) {
                 isProcessingCommand = true;
+                var thinkingInterval = showThinkingAnimation();
+
                 $.ajax({
                     url: '/voiceAI/process_command/',
                     type: 'POST',
@@ -167,6 +197,8 @@
                         log('AJAX error:', status, error);
                     },
                     complete: function() {
+                        clearInterval(thinkingInterval); // Stop animation
+                        document.getElementById('thinking').remove(); // Remove the thinking message
                         isProcessingCommand = false;
                     }
                 });
