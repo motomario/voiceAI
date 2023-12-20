@@ -153,10 +153,12 @@
                 $.ajax({
                     url: '/voiceAI/process_command/',
                     type: 'POST',
-                    data: {
+                    data: JSON.stringify({
                         'transcript': transcript,
                         'csrfmiddlewaretoken': csrftoken
-                    },
+                    }),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
                     success: function(response) {
                         log('Server response:', response);
                         appendMessage(response.message, 'chatgpt-message');
@@ -170,6 +172,7 @@
                 });
             }
         }
+
 
         function appendMessage(text, className) {
             var messageDiv = document.createElement('div');

@@ -149,3 +149,7 @@ LOGGING = {
         },
     },
 }
+# OpenAI Assistant ID
+OPENAI_ASSISTANT_ID = 'asst_sSkOFkAHG5aFs3qvSsub4tsT'
+
+OPENAI_API_KEY = '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'
