@@ -47,15 +47,21 @@ def index(request):
 def process_command(request):
     data = json.loads(request.body)
     transcript = data.get('transcript', '')
-    session = request.session.get('session', {})
+    thread_id = data.get('thread_id', None)
+    clear_chat = data.get('clear_chat', False)
 
     logger.info(f"Received transcript: {transcript}")
+    session = request.session.get('session', {})
 
     try:
-        if 'thread_id' not in session:
+        if clear_chat or 'thread_id' not in session:
             thread = client.beta.threads.create()
             session['thread_id'] = thread.id
             request.session['session'] = session
+        else:
+            # Use the existing thread_id if clear_chat is false and thread_id exists
+            if thread_id is not None:
+                session['thread_id'] = thread_id
 
         logger.debug(f"Sending to OpenAI: Thread ID - {session['thread_id']}, Transcript - {transcript}")
 
@@ -88,7 +94,7 @@ def process_command(request):
             message_content_obj = last_message.content[0]  # First item of the list
             if hasattr(message_content_obj, 'text') and hasattr(message_content_obj.text, 'value'):
                 response_text = message_content_obj.text.value
-                response_data = {'message': response_text}
+                response_data = {'message': response_text, 'thread_id': thread_id}
             else:
                 raise ValueError("Invalid message content structure")
         else:

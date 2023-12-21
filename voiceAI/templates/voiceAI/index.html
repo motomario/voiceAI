@@ -71,8 +71,6 @@
 
 <script>
 
-
-
     document.addEventListener('DOMContentLoaded', function() {
         var chatBox = document.getElementById('chat-box');
         var clearChat = document.getElementById('clear-chat');
@@ -169,9 +167,11 @@
         }
 
         clearChat.addEventListener('click', function() {
+            log('Clear Chat clicked');
             chatBox.innerHTML = '';
-            sessionStorage.clear();
-            log('Chat was cleared.');
+            sessionStorage.removeItem('thread_id');
+            sessionStorage.setItem('chatCleared', 'true'); // Set chatCleared flag
+            log('Chat cleared and thread ID was removed.');
         });
 
         function processTranscript(transcript) {
@@ -180,11 +180,16 @@
                 isProcessingCommand = true;
                 var thinkingInterval = showThinkingAnimation();
 
+                var thread_id = sessionStorage.getItem('thread_id');
+                var clear_chat = sessionStorage.getItem('chatCleared') === 'true';
+
                 $.ajax({
                     url: '/voiceAI/process_command/',
                     type: 'POST',
                     data: JSON.stringify({
                         'transcript': transcript,
+                        'thread_id': thread_id,
+                        'clear_chat': clear_chat, // Include the clear_chat flag
                         'csrfmiddlewaretoken': csrftoken
                     }),
                     contentType: "application/json; charset=utf-8",
@@ -192,6 +197,10 @@
                     success: function(response) {
                         log('Server response:', response);
                         appendMessage(response.message, 'chatgpt-message');
+                        // Save the thread_id from the response into sessionStorage
+                        if (response.thread_id) {
+                            sessionStorage.setItem('thread_id', response.thread_id);
+                        }
                     },
                     error: function(xhr, status, error) {
                         log('AJAX error:', status, error);
@@ -202,6 +211,10 @@
                         isProcessingCommand = false;
                     }
                 });
+
+                if (clear_chat) {
+                    sessionStorage.removeItem('chatCleared');
+                }
             }
         }
 
