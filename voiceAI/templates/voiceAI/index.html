@@ -188,6 +188,7 @@
                     type: 'POST',
                     data: JSON.stringify({
                         'transcript': transcript,
+                        'tab_id': sessionStorage.getItem('tabId'),
                         'thread_id': thread_id,
                         'clear_chat': clear_chat, // Include the clear_chat flag
                         'csrfmiddlewaretoken': csrftoken
@@ -228,13 +229,33 @@
             sessionStorage.setItem('chatHistory', chatBox.innerHTML);
         }
 
-        window.onload = function() {
+         window.onload = function() {
+            if (!sessionStorage.getItem('tabId')) {
+            sessionStorage.setItem('tabId', Date.now() + Math.random().toString());
+            }
+
+            var tabId = sessionStorage.getItem('tabId');
+            // Directly request a new thread ID from the backend upon page load
+            $.ajax({
+                url: '/voiceAI/new_thread/',
+                type: 'GET',
+                success: function(response) {
+                    if (response.thread_id) {
+                        sessionStorage.setItem('thread_id', response.thread_id);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    log('Error fetching new thread ID:', status, error);
+                }
+            });
+
             var savedHistory = sessionStorage.getItem('chatHistory');
             if (savedHistory) {
                 chatBox.innerHTML = savedHistory;
                 chatBox.scrollTop = chatBox.scrollHeight;
             }
         };
+
 
         function getCookie(name) {
             let cookieValue = null;

@@ -47,43 +47,46 @@ def index(request):
 def process_command(request):
     data = json.loads(request.body)
     transcript = data.get('transcript', '')
-    thread_id = data.get('thread_id', None)
     clear_chat = data.get('clear_chat', False)
 
-    logger.info(f"Received transcript: {transcript}")
-    session = request.session.get('session', {})
+    tab_id = data.get('tab_id', None)  # Unique tab identifier
+
+    logger.info(f"Received transcript: {transcript} for tab_id: {tab_id}")
+    tab_session = request.session.get(tab_id, {})  # Use tab_id as key in session
 
     try:
-        if clear_chat or 'thread_id' not in session:
+        if clear_chat or 'thread_id' not in tab_session:
+            # If clear_chat is requested or no thread_id exists in the tab_session, create a new thread
             thread = client.beta.threads.create()
-            session['thread_id'] = thread.id
-            request.session['session'] = session
+            thread_id = thread.id
+            tab_session['thread_id'] = thread.id
+            # Save the updated tab_session in the session
+            request.session[tab_id] = tab_session
         else:
-            # Use the existing thread_id if clear_chat is false and thread_id exists
-            if thread_id is not None:
-                session['thread_id'] = thread_id
+            # If clear_chat is not requested and a thread_id exists, retrieve it
+            thread_id = tab_session.get('thread_id')
 
-        logger.debug(f"Sending to OpenAI: Thread ID - {session['thread_id']}, Transcript - {transcript}")
+        logger.debug(f"Sending to OpenAI: Thread ID - {tab_session['thread_id']}, Transcript - {transcript}")
 
         message = client.beta.threads.messages.create(
-            thread_id=session['thread_id'],
+            thread_id=thread_id,
             role="user",
             content=transcript
         )
 
         run = client.beta.threads.runs.create(
-            thread_id=session['thread_id'],
+            thread_id=thread_id,
             assistant_id=settings.OPENAI_ASSISTANT_ID
         )
 
         while run.status != "completed":
             time.sleep(0.5)
             run = client.beta.threads.runs.retrieve(
-                thread_id=session['thread_id'],
+                thread_id=thread_id,
                 run_id=run.id
             )
 
-        messages = client.beta.threads.messages.list(thread_id=session['thread_id'])
+        messages = client.beta.threads.messages.list(thread_id=thread_id,)
         last_message = next(msg for msg in messages.data if msg.role == "assistant")
 
         logger.debug(f"Type of last_message.content: {type(last_message.content)}")
@@ -105,3 +108,12 @@ def process_command(request):
         response_data = {'error': str(e)}
 
     return JsonResponse(response_data)
+
+@require_http_methods(["GET"])
+def new_thread(request):
+    try:
+        thread = client.beta.threads.create()
+        return JsonResponse({'thread_id': thread.id})
+    except Exception as e:
+        logger.exception("Error creating new thread")
+        return JsonResponse({'error': str(e)}, status=500)
