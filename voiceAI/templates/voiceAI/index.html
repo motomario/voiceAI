@@ -58,6 +58,19 @@
             opacity: 0.8;
             font-style: italic;
         }
+        #text-input-container {
+            margin-top: 10px;
+        }
+
+        #user-text-input {
+            padding: 10px;
+            width: 80%;
+            margin-right: 5px;
+        }
+
+        #send-message {
+            padding: 10px 20px;
+        }
     </style>
 </head>
 <body>
@@ -67,6 +80,10 @@
     <button id="stop-listening" style="display:none;">Stop Listening</button>
     <button id="clear-chat">Clear Chat</button>
     <div id="chat-box"></div>
+    <div id="text-input-container">
+    <input type="text" id="user-text-input" placeholder="Type your message here..." />
+    <button id="send-message">Send</button>
+</div>
 </div>
 
 <script>
@@ -80,6 +97,27 @@
         var isProcessingCommand = false;
         var final_transcript = ''; // Global variable to store the final transcript
         var recognition;
+        var sendMessageBtn = document.getElementById('send-message');
+        var userInputField = document.getElementById('user-text-input');
+
+        function sendUserMessage() {
+            var userText = userInputField.value.trim();
+            if (userText) {
+                processTranscript(userText);
+                userInputField.value = ''; // Clear the input field after sending
+            }
+        }
+
+        // Attach the sendUserMessage function to the click event of the send button
+        sendMessageBtn.addEventListener('click', sendUserMessage);
+
+        // Attach the sendUserMessage function to the 'Enter' keypress event of the input field
+        userInputField.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent the default action to avoid submitting the form
+                sendUserMessage();
+            }
+        });
 
         // Set up logging
         function log(message) {

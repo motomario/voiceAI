@@ -12,7 +12,9 @@ import json
 # Configure the logger
 logger = logging.getLogger(__name__)
 
-client = openai.OpenAI(api_key="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")
+client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+
+
 
 
 class MessageContentText:
