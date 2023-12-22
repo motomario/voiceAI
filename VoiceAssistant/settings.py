@@ -27,10 +27,15 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
+SECURE_SSL_REDIRECT = True
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
 
 ALLOWED_HOSTS = ['kazena.icu', 'www.kazena.icu']
 
-# Application definition
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -149,3 +154,4 @@ LOGGING = {
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY').encode('ascii', 'ignore').decode('ascii')
 OPENAI_ASSISTANT_ID = os.getenv('OPENAI_ASSISTANT_ID').encode('ascii', 'ignore').decode('ascii')
+
