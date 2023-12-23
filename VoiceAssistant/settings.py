@@ -34,12 +34,14 @@ SECURE_HSTS_PRELOAD = True
 SESSION_COOKIE_SECURE = True  # Secure the session cookie
 CSRF_COOKIE_SECURE = True  # Secure the CSRF cookie
 
+
 ALLOWED_HOSTS = ['kazena.icu', 'www.kazena.icu']
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 
 INSTALLED_APPS = [
+    'django_extensions',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
