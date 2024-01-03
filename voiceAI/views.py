@@ -7,12 +7,14 @@ import openai
 import logging
 import time
 import json
-
+from django.middleware.csrf import get_token  # delete later
+from django.views.decorators.csrf import ensure_csrf_cookie  # delete later
 
 # Configure the logger
 logger = logging.getLogger(__name__)
 
 client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+
 
 class MessageContentText:
     def __init__(self, text, type):
@@ -20,8 +22,7 @@ class MessageContentText:
         self.type = type
 
     def to_dict(self):
-
-        # logger.debug(f"Converting MessageContentText to dict with text: {self.text} and type: {self.type}")
+        logger.debug(f"Converting MessageContentText to dict with text: {self.text} and type: {self.type}")
         return {
             'text': self.text,
             'type': self.type,
@@ -31,14 +32,16 @@ class MessageContentText:
 # Custom JSON Encoder
 class CustomEncoder(DjangoJSONEncoder):
     def default(self, obj):
-        #logger.debug(f"CustomEncoder processing object of type: {type(obj).__name__}")
+        logger.debug(f"CustomEncoder processing object of type: {type(obj).__name__}")
         if isinstance(obj, MessageContentText):
             return obj.to_dict()
         return super().default(obj)
 
 
+@ensure_csrf_cookie
 def index(request):
     return render(request, 'voiceAI/index.html')
+
 
 @require_http_methods(["POST"])
 def process_command(request):
@@ -63,7 +66,7 @@ def process_command(request):
             # If clear_chat is not requested and a thread_id exists, retrieve it
             thread_id = tab_session.get('thread_id')
 
-        #logger.debug(f"Sending to OpenAI: Thread ID - {tab_session['thread_id']}, Transcript - {transcript}")
+        logger.debug(f"Sending to OpenAI: Thread ID - {tab_session['thread_id']}, Transcript - {transcript}")
 
         message = client.beta.threads.messages.create(
             thread_id=thread_id,
@@ -83,12 +86,12 @@ def process_command(request):
                 run_id=run.id
             )
 
-        messages = client.beta.threads.messages.list(thread_id=thread_id,)
+        messages = client.beta.threads.messages.list(thread_id=thread_id, )
         last_message = next(msg for msg in messages.data if msg.role == "assistant")
 
-        # logger.debug(f"Type of last_message.content: {type(last_message.content)}")
-        # logger.debug(f"Structure of last_message.content: {last_message.content}")
-        # logger.debug(f"Last message full content: {last_message}")
+        logger.debug(f"Type of last_message.content: {type(last_message.content)}")
+        logger.debug(f"Structure of last_message.content: {last_message.content}")
+        logger.debug(f"Last message full content: {last_message}")
 
         if isinstance(last_message.content, list) and len(last_message.content) > 0:
             message_content_obj = last_message.content[0]  # First item of the list
@@ -101,10 +104,11 @@ def process_command(request):
             raise ValueError("Invalid message format")
 
     except Exception as e:
-       # logger.exception("Error processing the command")
+        logger.exception("Error processing the command")
         response_data = {'error': str(e)}
 
     return JsonResponse(response_data)
+
 
 @require_http_methods(["GET"])
 def new_thread(request):
@@ -112,5 +116,5 @@ def new_thread(request):
         thread = client.beta.threads.create()
         return JsonResponse({'thread_id': thread.id})
     except Exception as e:
-       # logger.exception("Error creating new thread")
+        logger.exception("Error creating new thread")
         return JsonResponse({'error': str(e)}, status=500)

@@ -81,13 +81,12 @@
     <button id="clear-chat">Clear Chat</button>
     <div id="chat-box"></div>
     <div id="text-input-container">
-    <input type="text" id="user-text-input" placeholder="Type your message here..." />
-    <button id="send-message">Send</button>
-</div>
+        <input type="text" id="user-text-input" placeholder="Type your message here..."/>
+        <button id="send-message">Send</button>
+    </div>
 </div>
 
 <script>
-
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -103,7 +102,7 @@
         return cookieValue;
     }
 
-     $(document).ready(function() {
+    $(document).ready(function() {
         const csrftoken = getCookie('csrftoken');
 
         $.ajaxPrefilter(function(options, originalOptions, xhr) {
@@ -116,9 +115,8 @@
         var clearChat = document.getElementById('clear-chat');
         var startListeningBtn = document.getElementById('start-listening');
         var stopListeningBtn = document.getElementById('stop-listening');
-
         var isProcessingCommand = false;
-        var final_transcript = ''; // Global variable to store the final transcript
+        var final_transcript = '';
         var recognition;
         var sendMessageBtn = document.getElementById('send-message');
         var userInputField = document.getElementById('user-text-input');
@@ -251,24 +249,30 @@
                         'transcript': transcript,
                         'tab_id': sessionStorage.getItem('tabId'),
                         'thread_id': thread_id,
-                        'clear_chat': clear_chat, // Include the clear_chat flag
+                        'clear_chat': clear_chat
                     }),
                     contentType: "application/json; charset=utf-8",
                     dataType: "json",
-                    success: function(response) {
+                    beforeSend: function(xhr, settings) {
+                        log('Sending AJAX request with CSRF token:', csrftoken);
+                        log('AJAX request details:', settings);
+                    },
+                    success: function(response, textStatus, xhr) {
+                        log('AJAX request successful. Status:', xhr.status);
                         log('Server response:', response);
                         appendMessage(response.message, 'chatgpt-message');
-                        // Save the thread_id from the response into sessionStorage
                         if (response.thread_id) {
                             sessionStorage.setItem('thread_id', response.thread_id);
                         }
                     },
                     error: function(xhr, status, error) {
-                        log('AJAX error:', status, error);
+                        log('AJAX request failed. Status:', status);
+                        log('Error:', error);
+                        log('Response Text:', xhr.responseText);
                     },
                     complete: function() {
-                        clearInterval(thinkingInterval); // Stop animation
-                        document.getElementById('thinking').remove(); // Remove the thinking message
+                        clearInterval(thinkingInterval);
+                        document.getElementById('thinking').remove();
                         isProcessingCommand = false;
                     }
                 });
@@ -278,7 +282,6 @@
                 }
             }
         }
-
 
         function appendMessage(text, className) {
             var messageDiv = document.createElement('div');

@@ -14,28 +14,26 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
+production_dotenv_path = Path('/home/kazena/htdocs/shared/.env')
+dotenv_path = production_dotenv_path if production_dotenv_path.exists() else Path(__file__).resolve().parent.parent / '.env'
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+load_dotenv(dotenv_path=dotenv_path)
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY', '')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-SECURE_SSL_REDIRECT = True
+DEBUG = True # true on local machine, false on prod
+SECURE_SSL_REDIRECT = False # false on local machine, true on prod
 SECURE_HSTS_SECONDS = 31536000  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
-SESSION_COOKIE_SECURE = True  # Secure the session cookie
-CSRF_COOKIE_SECURE = True  # Secure the CSRF cookie
+SESSION_COOKIE_SECURE = False  # false on local machine, true on prod
+CSRF_COOKIE_SECURE = False  # false on local machine, true on prod
+#CSRF_COOKIE_DOMAIN = '.kazena.icu' #comment this line out on local machine
 
 
-ALLOWED_HOSTS = ['kazena.icu', 'www.kazena.icu']
+ALLOWED_HOSTS = ['kazena.icu', 'www.kazena.icu', '153.92.223.32', '.kazena.icu', '0.0.0.0', '127.0.0.1'] # SECURITY WARNING: exclude '127.0.0.1' in prod
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -48,7 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'voiceAI.apps.VoiceAIConfig',  # voiceAI app
+    'voiceAI.apps.VoiceAIConfig',
 ]
 
 MIDDLEWARE = [
