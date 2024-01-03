@@ -4,74 +4,93 @@
     <meta charset="UTF-8">
     <title>Roboto 🤖</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <style>
-        body {
-            text-align: center;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            height: 100vh;
-            align-items: center;
-        }
-        #transcription-container {
-            width: 60%;
-            margin: 20px auto;
-        }
-        #chat-box {
-            border: 1px solid #ccc;
-            padding: 10px;
-            height: 400px;
-            overflow-y: auto;
-            background-color: #f9f9f9;
-        }
-        .message {
-            padding: 5px 10px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            width: fit-content;
-            word-wrap: break-word;
-            border: 1px solid #ccc;
-        }
-        .user-message {
-            margin-left: auto;
-            margin-right: 0;
-            background-color: transparent;
-        }
-        .chatgpt-message {
-            margin-right: auto;
-            margin-left: 0;
-            background-color: transparent;
-        }
-        button {
-            padding: 10px 20px;
-            margin: 5px;
-            cursor: pointer;
-        }
-        #clear-chat {
-            background-color: #ff4444;
-            color: white;
-            border: none;
-        }
-        .thinking-message {
-            /* Styling for the thinking message */
-            opacity: 0.8;
-            font-style: italic;
-        }
-        #text-input-container {
-            margin-top: 10px;
-        }
+<style>
+    body {
+        text-align: center;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        height: 100vh;
+        align-items: center;
+    }
+    #transcription-container {
+        width: 60%;
+        margin: 20px auto;
+    }
+    #chat-box {
+        border: 1px solid #ccc;
+        padding: 10px;
+        height: 400px;
+        overflow-y: auto;
+        background-color: #f9f9f9;
+    }
+    .message {
+        padding: 5px 10px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        width: fit-content;
+        word-wrap: break-word;
+        border: 1px solid #ccc;
+    }
+    .user-message {
+        margin-left: auto;
+        margin-right: 0;
+        background-color: transparent;
+    }
+    .chatgpt-message {
+        margin-right: auto;
+        margin-left: 0;
+        background-color: transparent;
+    }
+    button {
+        margin: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        background-color: #f9f9f9;
+        color: black;
+        border: 1px solid #ccc;
+        padding: 10px 20px; /* Adjust padding for button height */
+        font-size: 16px;
+    }
+    #user-text-input {
+        padding: 10px;
+        width: 80%;
+        margin-right: 5px;
+        font-size: 16px; /* Match font size with buttons */
+        height: auto; /* Adjust height based on padding and font size */
+        box-sizing: border-box; /* Include padding and border in height calculation */
+    }
+    #send-message {
+        height: auto; /* Adjust height to match input field */
+    }
+    button:hover {
+        background-color: #e6e6e6;
+    }
+    button:active {
+        background-color: #f9f9f9;
+    }
+    #clear-chat {
+        background-color: #ff4444;
+        color: white;
+        border: 1px solid #d43f3a;
+    }
+    #clear-chat:hover {
+        background-color: #e63e3e;
+    }
+    #clear-chat:active {
+        background-color: #ff4444;
+    }
+    .thinking-message {
+        opacity: 0.8;
+        font-style: italic;
+    }
+    #text-input-container {
+        margin-top: 10px;
+    }
+</style>
 
-        #user-text-input {
-            padding: 10px;
-            width: 80%;
-            margin-right: 5px;
-        }
 
-        #send-message {
-            padding: 10px 20px;
-        }
-    </style>
 </head>
 <body>
 <div id="transcription-container">
@@ -120,6 +139,12 @@
         var recognition;
         var sendMessageBtn = document.getElementById('send-message');
         var userInputField = document.getElementById('user-text-input');
+
+        function showGreetingMessage() {
+                var greetingText = "Hi, I'm Roboto 🤖. You can ask me questions like 'Who is Marius?' or 'What is he up to now?'";
+                appendMessage(greetingText, 'chatgpt-message');
+            }
+        showGreetingMessage();
 
         function sendUserMessage() {
             var userText = userInputField.value.trim();
@@ -231,6 +256,8 @@
             sessionStorage.removeItem('thread_id');
             sessionStorage.setItem('chatCleared', 'true'); // Set chatCleared flag
             log('Chat cleared and thread ID was removed.');
+            showGreetingMessage();
+
         });
 
         function processTranscript(transcript) {
