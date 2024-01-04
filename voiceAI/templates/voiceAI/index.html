@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Roboto 🤖</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <style>
@@ -110,29 +111,47 @@
         flex-shrink: 0;
     }
 
-    @media screen and (max-width: 600px) {
-        body {
-            flex-direction: column;
-        }
-        #transcription-container {
-            width: 90%;
-        }
-        #chat-box {
-            height: 500px;
-        }
-        button, #user-text-input {
-            font-size: 14px;
-            padding: 8px 15px;
-        }
-        #user-text-input {
-            width: auto;
-            flex-grow: 0;
-            flex-basis: 100%;
-        }
-        #start-listening, #stop-listening, #clear-chat, #send-message {
-            flex-basis: auto;
-        }
+   @media only screen and (max-width: 600px) {
+    #transcription-container {
+        width: 90%; /* Adjusted for mobile screens */
+        margin: 10px auto; /* Reduced margin for smaller screens */
     }
+
+	h1 {
+        font-size: 6vw; /* Use viewport width units to scale text size dynamically */
+        white-space: nowrap; /* Prevent the title from wrapping to a new line */
+    }
+
+    #chat-box {
+        height: 45vh; /* Using viewport height so it's relative to the device's screen */
+        margin-bottom: 5px; /* Adjust spacing as needed */
+    }
+
+    button {
+        padding: 12px 15px; /* Increase padding for better touch interaction */
+        font-size: 1em; /* Maintain font size consistent and relative */
+    }
+
+    #user-text-input, button {
+        font-size: 16px; /* Ensures text remains legible on small screens */
+    }
+
+    #text-input-container {
+        flex-direction: column; /* Stack the input and button on top of each other */
+        width: 100%; /* Full width to utilize space */
+    }
+
+    #user-text-input {
+        flex-grow: 1;
+        width: 100%; /* Full width for the text input */
+        margin: 5px 0; /* Adjust spacing around the text input */
+    }
+
+    #send-message {
+        width: 100%; /* Button takes full width */
+    }
+}
+
 </style>
 
 </head>
