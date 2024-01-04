@@ -24,6 +24,8 @@
         height: 400px;
         overflow-y: auto;
         background-color: #f9f9f9;
+        border: 1px solid black;
+        border-radius: 5px;
     }
     .message {
         padding: 5px 10px;
@@ -50,19 +52,25 @@
         background-color: #f9f9f9;
         color: black;
         border: 1px solid #ccc;
-        padding: 10px 20px; /* Adjust padding for button height */
+        padding: 10px 20px;
         font-size: 16px;
+        border: 1px solid black;
+        border-radius: 5px;
     }
     #user-text-input {
         padding: 10px;
         width: 80%;
         margin-right: 5px;
-        font-size: 16px; /* Match font size with buttons */
-        height: auto; /* Adjust height based on padding and font size */
-        box-sizing: border-box; /* Include padding and border in height calculation */
+        font-size: 16px;
+        height: auto;
+        box-sizing: border-box;
+        border: 1px solid black;
+        border-radius: 5px;
     }
     #send-message {
-        height: auto; /* Adjust height to match input field */
+        height: auto;
+        border: 1px solid black;
+        border-radius: 5px;
     }
     button:hover {
         background-color: #e6e6e6;
@@ -73,7 +81,8 @@
     #clear-chat {
         background-color: #ff4444;
         color: white;
-        border: 1px solid #d43f3a;
+        border: 1px solid black;
+        border-radius: 5px;
     }
     #clear-chat:hover {
         background-color: #e63e3e;
@@ -87,14 +96,49 @@
     }
     #text-input-container {
         margin-top: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100.45%;
+    }
+    #user-text-input {
+        flex-grow: 1;
+        margin-right: 5px;
+    }
+    #start-listening, #stop-listening, #clear-chat, #send-message {
+        margin: 5px;
+        flex-shrink: 0;
+    }
+
+    @media screen and (max-width: 600px) {
+        body {
+            flex-direction: column;
+        }
+        #transcription-container {
+            width: 90%;
+        }
+        #chat-box {
+            height: 500px;
+        }
+        button, #user-text-input {
+            font-size: 14px;
+            padding: 8px 15px;
+        }
+        #user-text-input {
+            width: auto;
+            flex-grow: 0;
+            flex-basis: 100%;
+        }
+        #start-listening, #stop-listening, #clear-chat, #send-message {
+            flex-basis: auto;
+        }
     }
 </style>
-
 
 </head>
 <body>
 <div id="transcription-container">
-    <h1>Voice Assistant Interface</h1>
+    <h1>Robot Assistant Interface ⚙️</h1>
     <button id="start-listening">Start Listening</button>
     <button id="stop-listening" style="display:none;">Stop Listening</button>
     <button id="clear-chat">Clear Chat</button>
