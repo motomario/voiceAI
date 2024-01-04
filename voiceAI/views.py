@@ -7,8 +7,7 @@ import openai
 import logging
 import time
 import json
-from django.middleware.csrf import get_token  # delete later
-from django.views.decorators.csrf import ensure_csrf_cookie  # delete later
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 # Configure the logger
 logger = logging.getLogger(__name__)

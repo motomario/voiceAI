@@ -23,17 +23,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', '')
 
-DEBUG = True # true on local machine, false on prod
-SECURE_SSL_REDIRECT = False # false on local machine, true on prod
+DEBUG = False # true on local machine, false on prod
+SECURE_SSL_REDIRECT = True # false on local machine, true on prod
 SECURE_HSTS_SECONDS = 31536000  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
-SESSION_COOKIE_SECURE = False  # false on local machine, true on prod
-CSRF_COOKIE_SECURE = False  # false on local machine, true on prod
-#CSRF_COOKIE_DOMAIN = '.kazena.icu' #comment this line out on local machine
+SESSION_COOKIE_SECURE = True  # false on local machine, true on prod
+CSRF_COOKIE_SECURE = True  # false on local machine, true on prod
+CSRF_COOKIE_DOMAIN = '.kazena.icu' #comment this line out on local machine
 
 
-ALLOWED_HOSTS = ['kazena.icu', 'www.kazena.icu', '153.92.223.32', '.kazena.icu', '0.0.0.0', '127.0.0.1'] # SECURITY WARNING: exclude '127.0.0.1' in prod
+ALLOWED_HOSTS = ['kazena.icu', 'www.kazena.icu', '153.92.223.32', '.kazena.icu', '0.0.0.0'] #, '127.0.0.1'] # SECURITY WARNING: exclude '127.0.0.1' in prod
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
